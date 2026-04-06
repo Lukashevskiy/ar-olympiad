@@ -1,3 +1,7 @@
-# Assets
+# Task 1 Assets
 
-Place marker patterns, reference images, and scene assets here.
+Файлы маркеров для первой задачи.
+
+- `pattern-1` ... `pattern-4` используются как четыре угла поля.
+- `.png` служат визуальными шаблонами для печати.
+- `.patt` используются AR.js для распознавания.

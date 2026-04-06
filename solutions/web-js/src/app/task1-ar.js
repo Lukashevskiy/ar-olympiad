@@ -1,5 +1,4 @@
 import { FIELD_MARKER_DEFINITIONS } from './marker-assets.js';
-import { createDebugGrid } from '../debug/debug-grid.js';
 import { createFieldGizmos } from '../debug/field-gizmos.js';
 import { createMarkerGizmos } from '../debug/marker-gizmos.js';
 import { createArFieldMarkerSource } from '../tasks/task1-field/ar-marker-source.js';

@@ -1,35 +1,23 @@
-# AR Olympiad Monorepo
+# Task 1 Branch
 
-Reference monorepo for a team AR olympiad task where participants reconstruct a field from four markers, estimate a light source from a separate marker, locate an object inside the field, and project its shadow onto the field plane.
+Эта ветка содержит автономное решение первой задачи: построение поля по четырём маркерам.
 
-The repository contains two parallel solution tracks:
+Ветка сфокусирована только на `Task 1`:
+- чтение позы четырёх маркеров поля;
+- восстановление поверхности поля;
+- вычисление нормали, локальных осей и центрального `FieldPose`;
+- оценка качества реконструкции;
+- получение transform в произвольной точке поверхности.
 
-- `solutions/web-js`: browser-first WebAR implementation on A-Frame, AR.js, and pure JavaScript math.
-- `solutions/python-web`: split architecture with a Python backend for detection / projection services and a JS frontend for scene rendering and debug tooling.
+## Структура
 
-Debug mode is a first-class part of the project. It is designed for geometry validation, marker layout debugging, shadow projection analysis, and API inspection without depending on a webcam pipeline.
+- `assets/`: изображения маркеров и `.patt` файлы.
+- `solutions/web-js/`: браузерное решение на A-Frame и AR.js.
+- `solutions/web-js/task1.html`: AR-страница для работы с реальными маркерами.
+- `solutions/web-js/task1-debug.html`: локальная страница для проверки геометрии без камеры.
+- `solutions/web-js/src/tasks/task1-field/README.md`: пояснение к реализации с привязкой к коду.
 
-## Repository layout
-
-- `docs/`: olympiad docs, architecture notes, and development workflow.
-- `specs/`: API, marker, math, and debug mode specifications.
-- `shared/`: shared domain examples and JSON contracts.
-- `assets/`: static assets and marker files.
-- `datasets/`: placeholder for training / evaluation data.
-- `solutions/web-js/`: full front-end variant with AR mode and debug mode.
-- `solutions/python-web/`: backend + frontend variant with mock detection and projection APIs.
-- `tools/`: helper scripts for local development and evaluation.
-
-## Task mapping
-
-- `task1-field`: four-marker field reconstruction, plane fitting, validation, surface transform.
-- `task2-object-detection`: object detection / stub object provider.
-- `task3-light`: light marker tracking and light pose estimation.
-- `task4-shadow`: planar shadow projection and visualization.
-
-Each solution keeps the same task split so teams can develop and compare implementations incrementally.
-
-## Run `web-js`
+## Запуск
 
 ```bash
 cd solutions/web-js
@@ -37,39 +25,16 @@ npm install
 npm run dev
 ```
 
-Open:
+Открыть:
 
-- `http://localhost:5173/` for AR mode.
-- `http://localhost:5173/debug.html` for developer mode.
+- `http://localhost:5173/task1.html`
+- `http://localhost:5173/task1-debug.html`
 
-## Run `python-web`
+## Ключевые файлы решения
 
-Backend:
-
-```bash
-cd solutions/python-web/backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
-```
-
-Frontend:
-
-```bash
-cd solutions/python-web/frontend
-npm install
-npm run dev
-```
-
-Open:
-
-- `http://localhost:5174/` for API-backed scene mode.
-- `http://localhost:5174/debug.html` for frontend debug mode.
-
-## MVP scope in this repository
-
-- Shared domain contracts for `FieldPose`, `LightPose`, `ObjectPose`, `ShadowProjection`, and `DebugState`.
-- Working JS MVP with field, light, object, and shadow pipeline in AR mode and camera-free debug mode.
-- Working Python MVP with FastAPI mock endpoints, frontend API client, and integrated shadow pipeline.
-- Modular debug gizmos, numeric overlays, and failure-state reporting.
+- `solutions/web-js/src/app/task1-ar.js`
+- `solutions/web-js/src/app/task1-debug.js`
+- `solutions/web-js/src/tasks/task1-field/ar-marker-source.js`
+- `solutions/web-js/src/tasks/task1-field/field-validator.js`
+- `solutions/web-js/src/tasks/task1-field/surface-reconstruction.js`
+- `solutions/web-js/src/tasks/task1-field/field-transform-service.js`

@@ -1,23 +1,22 @@
-# Web JS Solution
+# Web JS Task 1
 
-Browser-first MVP using A-Frame, AR.js, and pure JavaScript.
+Отдельное браузерное решение первой задачи на A-Frame, AR.js и JavaScript.
 
-## Entrypoints
+## Страницы
 
-- `/`: AR mode with marker-based scene.
-- `/debug.html`: camera-free debug mode with synthetic markers and full gizmos.
-- `/task1.html`: minimal standalone Task 1 AR demo.
-- `/task1-debug.html`: minimal standalone Task 1 debug demo.
+- `/task1.html` — построение поля по реальным маркерам через камеру.
+- `/task1-debug.html` — та же геометрия поля в локальном режиме без камеры.
 
-## Structure
+## Состав решения
 
-- `src/app/`: app wiring and shared runtime.
-- `src/tasks/`: olympiad tasks.
-- `src/math/`: pure geometry utilities.
-- `src/debug/`: fake providers and gizmos.
-- `src/ui/`: overlays and debug panels.
+- `src/app/task1-ar.js`: запуск AR-сцены для первой задачи.
+- `src/app/task1-debug.js`: локальный режим проверки геометрии.
+- `src/tasks/task1-field/`: алгоритм реконструкции поля.
+- `src/math/`: чистая геометрия и валидация.
+- `src/debug/`: вспомогательная визуализация для поля и маркеров.
+- `src/ui/`: компактные панели состояния.
 
-## Run
+## Запуск
 
 ```bash
 npm install

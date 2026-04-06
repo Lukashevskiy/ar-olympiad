@@ -2,7 +2,6 @@ import pattern1Url from '../../../../assets/pattern-1.patt?url';
 import pattern2Url from '../../../../assets/pattern-2.patt?url';
 import pattern3Url from '../../../../assets/pattern-3.patt?url';
 import pattern4Url from '../../../../assets/pattern-4.patt?url';
-import pattern5Url from '../../../../assets/pattern-5.patt?url';
 
 export const FIELD_MARKER_DEFINITIONS = [
   { id: 'field-nw', patternUrl: pattern1Url, label: 'Pattern 1', size: 0.16 },
@@ -10,10 +9,3 @@ export const FIELD_MARKER_DEFINITIONS = [
   { id: 'field-se', patternUrl: pattern3Url, label: 'Pattern 3', size: 0.16 },
   { id: 'field-sw', patternUrl: pattern4Url, label: 'Pattern 4', size: 0.16 }
 ];
-
-export const LIGHT_MARKER_DEFINITION = {
-  id: 'light-main',
-  patternUrl: pattern5Url,
-  label: 'Pattern 5',
-  size: 0.16
-};
