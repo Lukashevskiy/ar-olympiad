@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AR Olympiad | Task 1 Field AR Demo</title>
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <style>
+      body { margin: 0; font-family: monospace; background: #10141a; color: #e7edf3; }
+      #app { position: fixed; inset: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <a-scene
+        id="task1-scene"
+        embedded
+        vr-mode-ui="enabled: false"
+        renderer="colorManagement: true"
+        arjs="sourceType: webcam; debugUIEnabled: false;"
+      >
+        <a-camera id="task1-camera" position="0 0 0" rotation="0 0 0"></a-camera>
+        <a-entity id="task1-marker-layer"></a-entity>
+        <a-entity id="task1-field-layer"></a-entity>
+      </a-scene>
+    </div>
+    <script type="module" src="/src/app/task1-ar.js"></script>
+  </body>
+  </html>
