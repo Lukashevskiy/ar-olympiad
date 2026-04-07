@@ -1,7 +1,9 @@
 export function createDebugObjectProvider(config = {}) {
   const defaults = {
     className: 'debug-cylinder',
-    position: { x: 0.1, y: 0.22, z: 0.08 },
+    source: 'debug-object-provider',
+    surfaceUv: { u: 0.56, v: 0.42 },
+    heightAboveField: 0.22,
     rotation: { x: 0, y: 10, z: 0 },
     size: { x: 0.16, y: 0.4, z: 0.16 },
     confidence: 0.95
@@ -11,16 +13,21 @@ export function createDebugObjectProvider(config = {}) {
     get() {
       return {
         className: state.className,
-        position: { ...state.position },
+        surfaceUv: { ...state.surfaceUv },
+        heightAboveField: state.heightAboveField,
         rotation: { ...state.rotation },
         size: { ...state.size },
         contour: [],
         mask: null,
-        confidence: state.confidence
+        confidence: state.confidence,
+        source: state.source
       };
     },
-    setPosition(next) {
-      state.position = { ...state.position, ...next };
+    setSurfaceUv(next) {
+      state.surfaceUv = { ...state.surfaceUv, ...next };
+    },
+    setHeightAboveField(next) {
+      state.heightAboveField = next;
     }
   };
 }

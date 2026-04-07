@@ -35,12 +35,13 @@ function createAxisRow(markerId, axis, value, onChange) {
   return wrapper;
 }
 
-export function createTask1DebugControls(markers) {
+export function createTask1DebugControls(markers, options = {}) {
   const shell = createCollapsiblePanel({
-    title: 'Task 1 Marker Controls',
-    side: 'left',
-    width: '300px',
-    defaultCollapsed: false
+    title: options.title || 'Task 1 Marker Controls',
+    side: options.side || 'left',
+    width: options.width || '300px',
+    top: options.top || '12px',
+    defaultCollapsed: options.defaultCollapsed ?? false
   });
   const { body: panel } = shell;
 

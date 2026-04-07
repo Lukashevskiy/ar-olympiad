@@ -19,6 +19,13 @@ function renderMarkerDiagnostics(fieldPose) {
   }).join('\n\n');
 }
 
+function formatUv(surfaceUv) {
+  if (!surfaceUv) {
+    return '(n/a)';
+  }
+  return `(${surfaceUv.u.toFixed(2)}, ${surfaceUv.v.toFixed(2)})`;
+}
+
 export function createDebugPanel(mode = 'debug') {
   const shell = createCollapsiblePanel({
     title: `Developer Panel | ${mode}`,
@@ -65,6 +72,11 @@ export function createDebugPanel(mode = 'debug') {
         `light confidence: ${lightPose.confidence.toFixed(2)}`,
         '',
         `object position: ${formatVec3(objectPose.position)}`,
+        `object anchor: ${formatVec3(objectPose.fieldAnchor)}`,
+        `object surface uv: ${formatUv(objectPose.surfaceUv)}`,
+        `object height above field: ${(objectPose.heightAboveField ?? 0).toFixed(3)}`,
+        `object field status: ${objectPose.fieldStatus || 'unknown'}`,
+        `object source: ${objectPose.source || 'unknown'}`,
         `object size: ${formatVec3(objectPose.size)}`,
         `object class: ${objectPose.className}`,
         `object confidence: ${objectPose.confidence.toFixed(2)}`,

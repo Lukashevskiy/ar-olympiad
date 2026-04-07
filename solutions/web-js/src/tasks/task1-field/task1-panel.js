@@ -13,12 +13,13 @@ function renderMarkerList(fieldPose) {
   ].join('\n')).join('\n\n');
 }
 
-export function createTask1Panel(mode) {
+export function createTask1Panel(mode, options = {}) {
   const shell = createCollapsiblePanel({
-    title: `Task 1 Field Demo | ${mode}`,
-    side: 'right',
-    width: '320px',
-    defaultCollapsed: false
+    title: options.title || `Task 1 Field Demo | ${mode}`,
+    side: options.side || 'right',
+    width: options.width || '320px',
+    top: options.top || '12px',
+    defaultCollapsed: options.defaultCollapsed ?? false
   });
   const { body: panel } = shell;
 

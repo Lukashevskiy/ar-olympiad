@@ -1,6 +1,6 @@
 import { createFourMarkerSurface } from '../tasks/task1-field/four-marker-surface.js';
-import { getSurfaceTransform } from '../tasks/task1-field/field-transform-service.js';
 import { createDebugObjectProvider } from '../tasks/task2-object-detection/debug-object-provider.js';
+import { resolveObjectPoseOnField } from '../tasks/task2-object-detection/object-pose-service.js';
 import { createStubObjectDetector } from '../tasks/task2-object-detection/stub-object-detector.js';
 import { createLightMarkerTracker } from '../tasks/task3-light/light-marker-tracker.js';
 import { createShadowProjector } from '../tasks/task4-shadow/shadow-projector.js';
@@ -94,6 +94,18 @@ function buildDebugState(mode, markers, fieldPose, shadowProjection) {
   };
 }
 
+function resolveObjectDetection({ mode, objectProvider, fallbackObjectProvider, stubDetector, fieldPose }) {
+  if (objectProvider) {
+    return objectProvider();
+  }
+
+  if (mode === 'debug') {
+    return fallbackObjectProvider.get();
+  }
+
+  return stubDetector.detect({ fieldPose });
+}
+
 export function mountScene({
   container,
   mode,
@@ -141,9 +153,17 @@ export function mountScene({
   const sceneController = initializeScene?.({ scene }) || null;
 
   const bootstrapFieldPose = fieldSurface.evaluate();
-  const bootstrapObjectPose = objectProvider ? objectProvider() : (mode === 'debug'
-    ? fallbackObjectProvider.get()
-    : stubDetector.detect({ fieldPose: bootstrapFieldPose }));
+  const bootstrapDetection = resolveObjectDetection({
+    mode,
+    objectProvider,
+    fallbackObjectProvider,
+    stubDetector,
+    fieldPose: bootstrapFieldPose
+  });
+  const bootstrapObjectPose = resolveObjectPoseOnField({
+    fieldPose: bootstrapFieldPose,
+    detection: bootstrapDetection
+  });
   const bootstrapShadowProjection = shadowProjector.project({
     fieldPose: bootstrapFieldPose,
     lightPose: lightTracker.evaluate(),
@@ -160,16 +180,17 @@ export function mountScene({
     const markers = markersProvider();
     const fieldPose = fieldSurface.evaluate();
     const lightPose = lightTracker.evaluate();
-    const objectPose = objectProvider ? objectProvider() : (mode === 'debug'
-      ? fallbackObjectProvider.get()
-      : stubDetector.detect({ fieldPose }));
-    const surfaceTransform = getSurfaceTransform(fieldPose, 0.5, 0.5);
-
-    if (!objectProvider) {
-      objectPose.position.x = surfaceTransform.position.x + 0.08;
-      objectPose.position.z = surfaceTransform.position.z + 0.03;
-      objectPose.position.y = Math.max(fieldPose.origin.y + objectPose.size.y * 0.5, objectPose.position.y);
-    }
+    const objectDetection = resolveObjectDetection({
+      mode,
+      objectProvider,
+      fallbackObjectProvider,
+      stubDetector,
+      fieldPose
+    });
+    const objectPose = resolveObjectPoseOnField({
+      fieldPose,
+      detection: objectDetection
+    });
 
     const shadowProjection = shadowProjector.project({ fieldPose, lightPose, objectPose });
     const debugState = buildDebugState(mode, markers, fieldPose, shadowProjection);

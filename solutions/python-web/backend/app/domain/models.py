@@ -80,6 +80,9 @@ class DetectionRequest(BaseModel):
     frameId: str = "debug-frame"
     fieldPose: FieldPose
     debug: bool = True
+    detectorMode: str = "mock"
+    imageBase64: Optional[str] = None
+    fieldImageCorners: Optional[List[Vec3]] = None
 
 
 class DetectionResponse(BaseModel):
