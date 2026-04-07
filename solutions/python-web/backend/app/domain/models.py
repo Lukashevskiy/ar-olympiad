@@ -72,6 +72,10 @@ class ShadowProjection(BaseModel):
     scale: Vec3
     contour: list
     opacity: float
+    blur: float = 0.0
+    penumbraScale: float = 1.0
+    reflectionOpacity: float = 0.0
+    occlusionOpacity: float = 0.0
     status: str
     confidence: float
 
