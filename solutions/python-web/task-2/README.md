@@ -2,43 +2,13 @@
 
 ## Назначение
 
-Вторая задача отвечает за распознавание объекта внутри поля, которое задано маркерами, и за передачу результата в алгоритм построения тени.
+Вторая задача отвечает за распознавание объекта внутри поля, которое уже восстановлено по маркерам, и за перевод результата в `ObjectPose`, пригодный для последующего построения тени. В этой реализации выбран максимально понятный и демонстрационный вариант: система ищет мяч как конкретный объект простой формы, а сама детекция выполняется классическим computer vision-алгоритмом на backend.
 
-В этом решении реализован полный рабочий pipeline:
-
-1. камера запускается через `A-Frame + AR.js`;
-2. четыре маркера поля формируют `FieldPose`;
-3. отдельный маркер света формирует `LightPose`;
-4. текущий кадр с камеры захватывается во frontend;
-5. backend ищет мяч только внутри области поля;
-6. backend возвращает `ObjectPose`;
-7. по найденному объекту строится `ShadowProjection`;
-8. объект и тень отображаются обратно в AR-сцене.
-
-## Соответствие постановке
-
-Формулировка допускает:
-
-- конкретный объект простой формы;
-- конкретный объект сложной формы;
-- любой объект внутри поля;
-- реализацию через нейросети;
-- реализацию через computer vision.
-
-В этом варианте выбрано:
-
-- конкретный объект простой формы;
-- мяч;
-- классический computer vision;
-- ограничение поиска только областью поля.
+С практической точки зрения `Task 2` здесь устроен как связка двух уровней. На frontend поле восстанавливается в live AR-сцене и переводится в координаты кадра. Затем текущий кадр камеры и граница поля отправляются в backend, где строится маска допустимой области поиска и выполняется детекция мяча только внутри этой области. После этого backend возвращает `ObjectPose`, а frontend сразу использует его для дальнейшего pipeline тени.
 
 ## Входной HTML
 
-Основная страница решения:
-
-- [task2.html](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/task2.html)
-
-Полный HTML:
+Основная страница решения находится в [task2.html](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/task2.html). Важный момент здесь в том, что HTML играет роль не просто оболочки, а явного каркаса всего решения: слева живёт AR-сцена, ниже показывается preview кадра и полигона поля, справа отображается полный JSON состояния, а модульный JS только заполняет уже существующую структуру.
 
 ```html
 <!doctype html>
@@ -99,70 +69,28 @@
 </html>
 ```
 
-Что здесь важно:
-
-- используется живая камера, а не загруженный кадр;
-- маркеры читаются прямо в AR-сцене;
-- в сцене уже есть proxy-объект и proxy-тень;
-- в HTML вынесены основные UI-блоки;
-- страница является боевым entrypoint второй задачи.
+Этот HTML важен потому, что он сразу показывает архитектурную идею второй задачи: распознавание объекта здесь не существует само по себе, оно встроено в живую AR-сцену и связано с уже существующим полем.
 
 ## Основные файлы решения
 
-### Frontend
-
-- [task2.html](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/task2.html)
-- [task2.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/task2.js)
-- [marker-assets.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/marker-assets.js)
-- [ar-marker-source.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/ar-marker-source.js)
-- [marker-pose-registry.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/marker-pose-registry.js)
-- [field-state.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/field-state.js)
-- [screen-projection.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/screen-projection.js)
-- [request-builder.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task2-object-detection/request-builder.js)
-- [camera-frame.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task2-object-detection/camera-frame.js)
-- [task2-controls.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task2-object-detection/task2-controls.js)
-- [task2-view.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task2-object-detection/task2-view.js)
-- [ar-light-source.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/ar-light-source.js)
-- [light-state.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/light-state.js)
-- [client.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/api/client.js)
-
-### Backend
-
-- [detection.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/api/detection.py)
-- [shadow.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/api/shadow.py)
-- [models.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/domain/models.py)
-- [detection_service.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/services/detection_service.py)
-- [ball_detector.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/cv/ball_detector.py)
-- [shadow_math.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/services/shadow_math.py)
+Основной live pipeline проходит через [task2.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/task2.js), где собирается состояние сцены. Восстановление поля опирается на [marker-assets.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/marker-assets.js), [ar-marker-source.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/ar-marker-source.js), [marker-pose-registry.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/marker-pose-registry.js), [field-state.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/field-state.js) и [screen-projection.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/screen-projection.js). Захват кадра и сборка запроса выполняются через [camera-frame.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task2-object-detection/camera-frame.js) и [request-builder.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task2-object-detection/request-builder.js). Отображение состояния на странице организуют [task2-controls.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task2-object-detection/task2-controls.js) и [task2-view.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task2-object-detection/task2-view.js). На backend ключевую роль играют [detection.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/api/detection.py), [detection_service.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/services/detection_service.py), [ball_detector.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/cv/ball_detector.py), [shadow.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/api/shadow.py) и [shadow_math.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/services/shadow_math.py).
 
 ## Участки кода, которые отвечают за решение
 
 ### 1. Подключение камеры и AR-маркеров
 
-Файл:
-
-- [task2.html](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/task2.html)
-
-Код:
+Вторая задача начинается с той же AR-базы, что и первая: камера запускается через `A-Frame + AR.js`, а сцена становится источником живых pose-данных по маркерам.
 
 ```html
 <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
 <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 ```
 
-Комментарий:
+Именно здесь решение получает реальный видеопоток, в котором потом будут одновременно видны и поле, и объект.
 
-- frontend запускает webcam pipeline;
-- `AR.js` отвечает за распознавание маркеров;
-- отсюда решение получает реальную сцену.
+### 2. Field markers как опора для локализации объекта
 
-### 2. Подключение field markers
-
-Файл:
-
-- [marker-assets.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/marker-assets.js)
-
-Код:
+Как и в первой задаче, поле задаётся четырьмя маркерами. Они описаны в [marker-assets.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/marker-assets.js) и привязывают доменные идентификаторы углов к конкретным `.patt` файлам.
 
 ```javascript
 export const FIELD_MARKER_DEFINITIONS = [
@@ -173,19 +101,11 @@ export const FIELD_MARKER_DEFINITIONS = [
 ];
 ```
 
-Комментарий:
-
-- у поля есть четыре фиксированных маркера;
-- каждому углу соответствует свой `.patt` файл;
-- это напрямую соответствует первой задаче.
+Важно не просто то, что здесь перечислены маркеры, а то, что вся последующая логика второй задачи опирается именно на эту топологию углов поля.
 
 ### 3. Хранилище поз маркеров
 
-Файл:
-
-- [marker-pose-registry.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/marker-pose-registry.js)
-
-Код:
+Чтобы поле можно было собирать из потока AR-состояния, frontend использует промежуточный registry из [marker-pose-registry.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/marker-pose-registry.js).
 
 ```javascript
 export function createMarkerPoseRegistry() {
@@ -205,19 +125,11 @@ export function createMarkerPoseRegistry() {
 }
 ```
 
-Комментарий:
-
-- registry хранит текущие состояния всех маркеров;
-- `Task 1` читает из него полную картину по углам поля;
-- это связка между AR-слоем и математикой поля.
+Эта прослойка делает решение устойчивым и понятным: AR-слой только обновляет состояния маркеров, а математический слой поля уже читает их в удобном доменном виде.
 
 ### 4. Чтение позы маркеров
 
-Файл:
-
-- [ar-marker-source.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/ar-marker-source.js)
-
-Код:
+Само чтение позы происходит в [ar-marker-source.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/ar-marker-source.js), где для каждого видимого маркера вычисляются мировая позиция и локальные оси.
 
 ```javascript
 const pose = readPoseFromObject3D(element.object3D);
@@ -228,19 +140,11 @@ registry.update(definition.id, {
 });
 ```
 
-Комментарий:
-
-- для каждого видимого маркера читается мировая позиция;
-- дополнительно читаются локальные оси;
-- эти данные затем используются для построения `FieldPose`.
+Эта часть важна потому, что `Task 2` не может честно ограничить поиск объектом “внутри поля”, если само поле ещё не сведено к устойчивой геометрии в мировой системе координат.
 
 ### 5. Построение `FieldPose`
 
-Файл:
-
-- [field-state.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/field-state.js)
-
-Код:
+Когда registry обновлён, frontend собирает `FieldPose` в [field-state.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/field-state.js). Здесь поле не просто распознаётся как прямоугольник, а получает размеры, оси, нормаль и качество реконструкции.
 
 ```javascript
 export function buildFieldPose(markerMap) {
@@ -251,20 +155,11 @@ export function buildFieldPose(markerMap) {
     .filter(Boolean);
 ```
 
-Комментарий:
-
-- поле строится по четырём маркерам;
-- из геометрии маркеров получаются углы, размеры и нормаль;
-- дополнительно учитываются нормали самих маркеров;
-- на выходе получается `FieldPose`, пригодный для детекции и тени.
+На этом шаге `Task 2` фактически наследует результат первой задачи: локализация объекта будет считаться корректной только в том случае, если само поле построено надёжно.
 
 ### 6. Проекция углов поля в координаты кадра
 
-Файл:
-
-- [screen-projection.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/screen-projection.js)
-
-Код:
+После восстановления поля его углы нужно перевести в координаты изображения. Для этого используется [screen-projection.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/screen-projection.js).
 
 ```javascript
 export function projectWorldPointToImage(point, camera) {
@@ -279,19 +174,11 @@ export function projectWorldPointToImage(point, camera) {
 }
 ```
 
-Комментарий:
-
-- углы поля переводятся из мировых координат в координаты изображения;
-- это связывает AR-поле и backend CV detector;
-- backend затем ограничивает поиск мяча polygon mask области поля.
+Этот переход особенно важен, потому что backend detector работает уже не с world-space углами, а с polygon mask в координатах самого кадра.
 
 ### 7. Формирование detection request
 
-Файл:
-
-- [request-builder.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task2-object-detection/request-builder.js)
-
-Код:
+Контракт запроса вынесен в [request-builder.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task2-object-detection/request-builder.js). Благодаря этому frontend не склеивает request “вручную” каждый раз, а формирует единый payload с известной структурой.
 
 ```javascript
 export function buildDetectionRequest(fieldPose, options = {}) {
@@ -306,19 +193,11 @@ export function buildDetectionRequest(fieldPose, options = {}) {
 }
 ```
 
-Комментарий:
-
-- frontend собирает единый payload для backend;
-- в него входят поле, изображение и углы поля;
-- это официальный вход во вторую задачу со стороны frontend.
+Важный смысл этого куска кода в том, что backend получает не просто картинку, а уже контекст задачи: какое поле построено, какой режим детекции выбран и где на изображении проходит граница поля.
 
 ### 8. Захват живого кадра
 
-Файл:
-
-- [camera-frame.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task2-object-detection/camera-frame.js)
-
-Код:
+Текущий кадр камеры снимается через [camera-frame.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task2-object-detection/camera-frame.js). Этот модуль буквально связывает AR-видеопоток и backend CV-детектор.
 
 ```javascript
 const video = document.querySelector('video');
@@ -330,20 +209,11 @@ return {
 };
 ```
 
-Комментарий:
-
-- frontend берёт текущий кадр прямо из webcam stream;
-- кадр сериализуется в `imageBase64`;
-- именно этот кадр отправляется в backend detector.
+С инженерной точки зрения это тот момент, когда живая AR-сцена превращается в входные данные для алгоритма распознавания.
 
 ### 9. Запуск backend API
 
-Файлы:
-
-- [client.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/api/client.js)
-- [task2.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/task2.js)
-
-Код:
+После того как кадр и поле готовы, frontend через [client.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/api/client.js) и [task2.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/task2.js) вызывает оба backend endpoint: сначала детекцию объекта, а затем проекцию тени.
 
 ```javascript
 const detection = await detectObject(buildDetectionRequest(state.fieldPose, {
@@ -356,40 +226,22 @@ const shadow = await projectShadow(
 );
 ```
 
-Комментарий:
-
-- frontend вызывает оба backend endpoint:
-  - детекцию объекта;
-  - проекцию тени;
-- это делает `Task 2` полноценным end-to-end pipeline.
+Это превращает задачу во вполне законченный end-to-end pipeline, где распознавание объекта больше не изолировано от остальной сцены.
 
 ### 10. Light marker и fallback света
 
-Файлы:
-
-- [ar-light-source.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/ar-light-source.js)
-- [light-state.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/light-state.js)
-
-Код:
+Хотя главная цель второй задачи — распознавание объекта, live pipeline уже учитывает и источник света. Для этого используется [ar-light-source.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/ar-light-source.js) и fallback из [light-state.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/light-state.js).
 
 ```javascript
 const lightMarker = lightSource.refresh();
 state.lightPose = lightMarker || createLightPose();
 ```
 
-Комментарий:
-
-- если light marker виден, используется его живая поза;
-- если маркер света временно не виден, используется fallback `LightPose`;
-- это не рвёт pipeline тени.
+Такое решение нужно не только для красоты. Благодаря этому после успешной детекции объект уже сразу оказывается встроен в будущий shadow pipeline, даже если light marker в какой-то момент временно исчезает из кадра.
 
 ### 11. Ограничение детекции областью поля
 
-Файл:
-
-- [ball_detector.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/cv/ball_detector.py)
-
-Код:
+Ключевая часть backend-логики находится в [ball_detector.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/cv/ball_detector.py). Именно здесь построение поля начинает реально влиять на поиск объекта: backend строит polygon mask и пересекает с ней цветовую маску мяча.
 
 ```python
 field_polygon = _corners_to_polygon(field_image_corners, image_width, image_height)
@@ -397,19 +249,11 @@ field_mask = _build_field_mask(image_width, image_height, field_polygon)
 mask = cv2.bitwise_and(color_mask, field_mask)
 ```
 
-Комментарий:
-
-- backend строит polygon mask поля;
-- поиск мяча идёт только внутри этой маски;
-- объект вне поля не считается валидной детекцией.
+Это и есть главный содержательный смысл второй задачи в данной реализации: объект ищется не “где-то на картинке”, а именно внутри области, которая подтверждена маркерами поля.
 
 ### 12. Формирование `ObjectPose`
 
-Файл:
-
-- [ball_detector.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/cv/ball_detector.py)
-
-Код:
+После нахождения объекта backend переводит результат в единый доменный формат `ObjectPose`. Это снова делается в [ball_detector.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/cv/ball_detector.py).
 
 ```python
 return {
@@ -421,18 +265,11 @@ return {
 }
 ```
 
-Комментарий:
-
-- backend возвращает объект в общем формате `ObjectPose`;
-- этот результат напрямую используется в задаче тени.
+Это важно, потому что дальше задача тени уже не должна знать ничего о контурах HSV-маски или о деталях CV. Для неё есть только согласованный `ObjectPose`.
 
 ### 13. Построение тени
 
-Файл:
-
-- [shadow_math.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/services/shadow_math.py)
-
-Код:
+Даже в рамках второй задачи детекция не останавливается на `ObjectPose`, а сразу продолжается в [shadow_math.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/services/shadow_math.py), где объект проецируется на плоскость поля.
 
 ```python
 point = _add(ray_origin, _scale(ray_direction, t))
@@ -446,19 +283,11 @@ return {
     },
 ```
 
-Комментарий:
-
-- тень строится уже от найденного объекта;
-- используется поле, свет и `ObjectPose`;
-- это даёт полный pipeline второй задачи.
+В результате `Task 2` становится не только распознаванием ради распознавания, а полноценным промежуточным звеном между полем, объектом и тенью.
 
 ### 14. Отрисовка результата обратно в сцене
 
-Файл:
-
-- [task2.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/task2.js)
-
-Код:
+Последний шаг снова выполняется во frontend, в [task2.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/task2.js). Здесь результат backend возвращается в сцену и одновременно сохраняется в диагностическом view.
 
 ```javascript
 updateObjectProxy(objectProxy, state.objectPose);
@@ -475,32 +304,11 @@ view.render({
 });
 ```
 
-Комментарий:
-
-- результат backend не остаётся только в JSON;
-- найденный объект показывается в AR-сцене;
-- тень тоже отображается в сцене;
-- отдельный view показывает диагностическую информацию и preview кадра.
+Это место особенно удобно для демонстрации решения: пользователь одновременно видит и AR-сцену, и preview кадра, и полный JSON состояния. То есть распознавание объекта становится прозрачным и объяснимым, а не “чёрным ящиком”.
 
 ## Проверка покрытия решения
 
-В README учтены все основные части live `Task 2`:
-
-- HTML entrypoint;
-- камера и `AR.js`;
-- field markers;
-- registry состояний маркеров;
-- чтение world pose маркеров;
-- построение `FieldPose`;
-- проекция углов поля в координаты кадра;
-- захват кадра;
-- сборка detection request;
-- вызовы backend API;
-- light marker и fallback света;
-- ограничение поиска внутри поля;
-- формирование `ObjectPose`;
-- построение тени;
-- отображение объекта и тени обратно в сцене.
+Этот README описывает вторую задачу как связный pipeline: здесь последовательно покрыты HTML entrypoint, камера и `AR.js`, field markers, registry состояний маркеров, чтение pose маркеров, построение `FieldPose`, проекция углов поля в координаты кадра, захват живого кадра, сборка detection request, вызовы backend API, работа light marker как контекста сцены, ограничение поиска внутри поля, формирование `ObjectPose`, построение тени и возврат результата обратно в сцену.
 
 ## Как запустить
 
@@ -525,12 +333,3 @@ npm run dev
 Открыть:
 
 - `http://localhost:5174/task2.html`
-
-## Что показывает это решение
-
-- поле восстанавливается по четырём маркерам;
-- мяч ищется только внутри этого поля;
-- используется живая камера;
-- детекция идёт через backend CV;
-- после детекции строится тень;
-- объект и тень отображаются обратно в AR-сцене.

@@ -2,50 +2,13 @@
 
 ## Назначение
 
-Решение `Task 1` отвечает за восстановление поля по маркерам и вычисление геометрии поверхности.
+Первая задача отвечает за восстановление поля по маркерам и за вычисление геометрии поверхности, на которую затем будут опираться все остальные части проекта. В этой реализации поле задаётся четырьмя маркерами, где каждый маркер соответствует одному углу: `field-nw`, `field-ne`, `field-se` и `field-sw`. Система получает из AR-сцены мировые позиции и локальные оси этих маркеров, отбрасывает отсутствующие данные, реконструирует поверхность поля, вычисляет её локальные оси и нормаль, а затем собирает итоговый `FieldPose`.
 
-В текущем варианте используется схема с **четырьмя маркерами поля**, где каждый маркер задает один угол:
-
-- `field-nw`
-- `field-ne`
-- `field-se`
-- `field-sw`
-
-По этим маркерам система:
-
-1. получает мировые позиции и локальные оси маркеров;
-2. определяет видимые маркеры;
-3. строит поверхность поля;
-4. вычисляет локальные оси поля и нормаль;
-5. формирует `FieldPose`;
-6. оценивает качество реконструкции.
-
-## Соответствие пунктам задания
-
-Формулировка задания для первой части включает:
-
-- два маркера для противоположных углов;
-- четыре маркера для всех сторон;
-- barcode или собственные маркеры;
-- построение поля:
-  - без учета наклона;
-  - с учетом наклона и искривления поверхности.
-
-В данном решении реализован вариант:
-
-- **четыре маркера для всех сторон**;
-- **собственные маркеры** в виде изображения + `.patt`;
-- **построение поверхности с учетом наклона и искривления**.
-
-Плоский случай без искривления является частным случаем этой же модели.
+С точки зрения постановки это решение соответствует варианту с четырьмя собственными маркерами и с построением поверхности с учётом наклона и искривления. Плоский случай здесь не вынесен в отдельный режим, потому что он естественно получается как частный случай той же модели, когда все нормали и углы согласованы и не создают заметного изгиба.
 
 ## Используемые маркеры
 
-Привязка маркеров хранится в файле:
-
-- [marker-assets.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/app/marker-assets.js)
-
-Код:
+Привязка маркеров вынесена в [marker-assets.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/app/marker-assets.js). Это важный организационный момент: замена паттернов не требует переписывать математику поля или AR-слой, достаточно сменить mapping между конкретным `.patt` файлом и доменным идентификатором угла.
 
 ```js
 export const FIELD_MARKER_DEFINITIONS = [
@@ -56,19 +19,11 @@ export const FIELD_MARKER_DEFINITIONS = [
 ];
 ```
 
-Что здесь происходит:
-
-- каждому углу поля сопоставляется свой pattern marker;
-- `patternUrl` указывает на `.patt` файл;
-- при замене маркеров меняется только этот mapping.
+Здесь видно, что каждый угол поля связан со своим marker pattern. Благодаря этому слой распознавания остаётся техническим, а доменная модель поля продолжает работать уже с именованными углами, а не с безличными паттернами.
 
 ## Входной HTML
 
-Исходный HTML-файл для `Task 1`:
-
-- [task1.html](/home/dmitriyl/olypiad_ar_task/solutions/web-js/task1.html)
-
-Код:
+Основная страница задачи находится в [task1.html](/home/dmitriyl/olypiad_ar_task/solutions/web-js/task1.html). Важный момент этой страницы в том, что статические части сцены вынесены в HTML, а не создаются в рантайме. Это упрощает структуру решения: из HTML сразу видно, где находится камера, где будет жить слой маркеров и где будет размещаться визуализация поля.
 
 ```html
 <!doctype html>
@@ -103,32 +58,17 @@ export const FIELD_MARKER_DEFINITIONS = [
 </html>
 ```
 
-Что здесь важно:
-
-- `a-scene` задает AR-сцену;
-- `arjs="sourceType: webcam"` включает работу через камеру;
-- `task1-marker-layer` используется для marker entities;
-- `task1-field-layer` используется для визуализации поля;
-- основная логика запускается из `task1-ar.js`.
+Именно эта страница поднимает live camera pipeline через `AR.js`, а дальше передаёт управление в `task1-ar.js`, где начинается доменная логика первой задачи.
 
 ## Основные файлы решения
 
-- [task1-ar.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/app/task1-ar.js)
-- [ar-marker-source.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/ar-marker-source.js)
-- [marker-pose-registry.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/marker-pose-registry.js)
-- [field-validator.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/field-validator.js)
-- [surface-reconstruction.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/surface-reconstruction.js)
-- [field-transform-service.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/field-transform-service.js)
+Ключевая связка файлов в первой задаче проходит через [task1-ar.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/app/task1-ar.js), [ar-marker-source.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/ar-marker-source.js), [marker-pose-registry.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/marker-pose-registry.js), [field-validator.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/field-validator.js), [surface-reconstruction.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/surface-reconstruction.js) и [field-transform-service.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/field-transform-service.js). В сумме эти файлы образуют понятную цепочку: сначала берётся pose маркеров, потом из него собирается поверхность поля, затем поле валидируется и превращается в `FieldPose`, после чего от этой поверхности можно получать локальный transform в любой точке.
 
 ## Участки кода, которые отвечают за решение
 
 ### 1. Получение позы маркера
 
-Файл:
-
-- [ar-marker-source.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/ar-marker-source.js)
-
-Код:
+Источник фактических данных о маркере находится в [ar-marker-source.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/ar-marker-source.js). Здесь AR.js и A-Frame используются только как поставщики мирового transform, а доменная модель поля строится уже поверх этих данных.
 
 ```js
 function readPoseFromObject3D(object3D) {
@@ -156,19 +96,11 @@ function readPoseFromObject3D(object3D) {
 }
 ```
 
-Комментарий:
-
-- из AR.js / A-Frame берётся мировая поза маркера;
-- получаются позиция и локальные оси;
-- эти данные идут дальше в реконструкцию поля.
+Ключевая идея этого фрагмента в том, что система берёт не только координаты центра маркера, но и его локальные оси. Для простой плоской реконструкции хватило бы только позиций углов, но здесь оси нужны, чтобы учитывать наклон и дальше использовать нормали маркеров как часть модели поверхности.
 
 ### 2. Исключение отсутствующих маркеров из решения
 
-Файл:
-
-- [field-validator.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/field-validator.js)
-
-Код:
+Следующий шаг происходит в [field-validator.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/field-validator.js), где система сначала выясняет, какие углы вообще доступны в текущем кадре. Это важно не только для качества, но и для устойчивости: задача не должна молча строить поле по неполным данным.
 
 ```js
 const visibleMarkers = MARKER_ORDER.filter(
@@ -180,18 +112,11 @@ const corners = MARKER_ORDER.map((markerId) => (
 ));
 ```
 
-Комментарий:
-
-- в реконструкции участвуют только видимые маркеры;
-- если угла нет, поле считается неполным;
+В этом месте решение явно разделяет два состояния: “поле можно восстанавливать” и “данных пока недостаточно”. Это избавляет от ложной геометрии в тех кадрах, где часть маркеров потеряна или распознана нестабильно.
 
 ### 3. Построение поверхности по положениям и нормалям маркеров
 
-Файл:
-
-- [surface-reconstruction.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/surface-reconstruction.js)
-
-Код:
+Собственно реконструкция поверхности вынесена в [surface-reconstruction.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/surface-reconstruction.js). Здесь поле представляется не как жёсткая идеальная плоскость, а как normal-guided patch, который проходит через четыре угла и дополнительно подстраивается под нормали маркеров.
 
 ```js
 export function createNormalGuidedSurface(markerMap) {
@@ -220,20 +145,11 @@ export function createNormalGuidedSurface(markerMap) {
 }
 ```
 
-Комментарий:
-
-- поле строится не как одна жесткая плоскость;
-- используется патч по четырем углам;
-- нормали маркеров влияют на форму поверхности;
-- это и есть реализация варианта “с учетом наклона и искривления поверхности”.
+Смысл здесь в том, что позиции углов дают базовую геометрию, а нормали маркеров корректируют форму поверхности. Поэтому решение умеет вести себя не только как “прямоугольник на столе”, но и как модель поля на наклонённой или слегка искажённой поверхности.
 
 ### 4. Получение центральной геометрии поля
 
-Файл:
-
-- [field-validator.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/field-validator.js)
-
-Код:
+После того как поверхность появилась, система извлекает из неё центральную геометрию. Это тоже происходит в [field-validator.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/field-validator.js), но уже на уровне доменного объекта `FieldPose`.
 
 ```js
 const surface = createNormalGuidedSurface(markerMap);
@@ -245,14 +161,9 @@ const centerForward = normalize(sub(centerV.position, centerSample.position));
 const centerNormal = normalize(cross(centerRight, centerForward));
 ```
 
-Комментарий:
+Здесь поле уже рассматривается как локальная система координат. Центральная точка становится `origin`, соседние сэмплы задают касательные направления, а из них получается нормаль. Это нужно не только для отчёта о состоянии поля, но и для всех следующих задач, потому что объект, свет и тень должны работать в одной согласованной системе координат поверхности.
 
-- сначала строится поверхность;
-- затем берётся центральная точка;
-- по соседним точкам вычисляются касательные;
-- из них вычисляется нормаль поля.
-
-Итоговый `FieldPose`:
+Итогом становится `FieldPose`, где одновременно присутствуют и доменные размеры поля, и локальные оси, и ссылка на модель самой поверхности:
 
 ```js
 return {
@@ -270,21 +181,9 @@ return {
 };
 ```
 
-Комментарий:
-
-- `origin` — центральная опорная точка поля;
-- `axes` — локальная система координат поля;
-- `normal` — нормаль поля;
-- `surface` — модель поверхности;
-- `width` и `depth` — размеры поля.
-
 ### 5. Проверка качества реконструкции
 
-Файл:
-
-- [field-validator.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/field-validator.js)
-
-Код:
+Отдельно важно, что решение не просто строит поле, но и оценивает, насколько хорошо оно восстановлено. Это также собранно в [field-validator.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/field-validator.js), где геометрические ошибки и расхождения нормалей превращаются в итоговый статус.
 
 ```js
 const mergedValidation = {
@@ -305,25 +204,11 @@ const mergedValidation = {
 };
 ```
 
-Комментарий:
-
-- оценивается геометрия углов;
-- оценивается согласованность нормалей маркеров;
-- формируется итоговый статус поля.
-
-Смысл статусов:
-
-- `layout-good` — поле восстановлено уверенно;
-- `layout-distorted` — поле восстановлено, но геометрия искажена;
-- `plane-unreliable` — данные противоречат друг другу или их недостаточно.
+Это важный инженерный момент: первая задача не сводится к “плоскость либо есть, либо нет”. В реальном потоке данных возможны искажения, шум и неоднозначные кадры, поэтому система должна уметь различать хороший случай, искажённый, но рабочий случай, и полностью ненадёжную реконструкцию. За это и отвечает связка `layout-good`, `layout-distorted` и `plane-unreliable`.
 
 ### 6. Получение transform в любой точке поверхности
 
-Файл:
-
-- [field-transform-service.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/field-transform-service.js)
-
-Код:
+Завершающий элемент первой задачи находится в [field-transform-service.js](/home/dmitriyl/olypiad_ar_task/solutions/web-js/src/tasks/task1-field/field-transform-service.js). Здесь поле уже используется как параметризованная поверхность, в любой точке которой можно получить локальный transform.
 
 ```js
 const sample = fieldPose.surface.sample(u, v);
@@ -336,17 +221,7 @@ const tangentV = normalize(sub(dvNext.position, dvPrev.position));
 const normal = normalize(cross(tangentU, tangentV));
 ```
 
-Комментарий:
-
-- по параметрам `u, v` берётся точка на поверхности;
-- вычисляются касательные направления;
-- получается локальная нормаль и локальная ориентация поверхности.
-
-Это нужно для следующих задач:
-
-- размещение объекта на поле;
-- привязка графики к поверхности;
-- построение тени уже на восстановленном поле.
+Практически это означает, что последующие задачи могут не “угадывать”, где находится поверхность, а спрашивать у `Task 1`, как выглядит локальная ориентация в точке `(u, v)`. Именно поэтому первая задача становится фундаментом для размещения объекта на поле, для привязки любой графики к поверхности и для построения тени уже на восстановленном поле, а не на условной мировой плоскости.
 
 ## Запуск
 

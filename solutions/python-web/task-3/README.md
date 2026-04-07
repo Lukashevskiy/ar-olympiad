@@ -2,23 +2,13 @@
 
 ## Назначение
 
-Третья задача отвечает за выделение отдельного маркера источника света и преобразование его положения и ориентации в `LightPose`.
+Третья задача отвечает за выделение отдельного маркера источника света и за преобразование его положения и ориентации в `LightPose`, который затем можно использовать в задаче тени. В этой реализации использован собственный marker pattern, распознаваемый через `AR.js`, а поверх него реализованы три режима работы света: рассеянный свет, направленный свет с заранее фиксированным направлением и направленный свет с учётом поворота самого маркера.
 
-В этом решении реализованы три режима:
-
-- рассеянный свет;
-- направленный свет с фиксированным заранее направлением;
-- направленный свет с учётом поворота маркера.
-
-В качестве источника используется собственный маркер, который распознаётся через `AR.js`.
+Важно, что эта задача здесь оформлена не как вспомогательная утилита, а как самостоятельная live-страница. Пользователь видит реальную сцену, может показать marker в камеру, переключить режим света и сразу наблюдать, как меняется освещение preview-объектов.
 
 ## Входной HTML
 
-Основная страница решения:
-
-- [task3.html](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/task3.html)
-
-Полный HTML:
+Основная страница решения находится в [task3.html](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/task3.html). Как и в предыдущих задачах, HTML здесь играет роль явного каркаса: он поднимает AR-сцену, создаёт реальные light entities и задаёт места для панели управления и численной диагностики.
 
 ```html
 <!doctype html>
@@ -65,55 +55,28 @@
 </html>
 ```
 
-Что здесь важно:
-
-- страница использует живую камеру;
-- light marker читается в AR-сцене;
-- на сцене есть реальные A-Frame light entities;
-- поведение света меняется в зависимости от выбранного режима.
+Из этого HTML уже видно, что страница ориентирована не только на распознавание marker pose, но и на визуальное объяснение результата: в сцене заранее присутствуют ambient и directional источники, а также сущности для отображения положения и направления света.
 
 ## Основные файлы решения
 
-### Frontend
-
-- [task3.html](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/task3.html)
-- [task3.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/task3.js)
-- [marker-assets.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/marker-assets.js)
-- [ar-light-source.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/ar-light-source.js)
-- [light-state.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/light-state.js)
-- [light-pose-service.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/light-pose-service.js)
-- [task3-controls.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/task3-controls.js)
-- [task3-view.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/task3-view.js)
-- [light-visualizer.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/light-visualizer.js)
+Вся логика `Task 3` проходит через [task3.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/task3.js), где собирается live pipeline страницы. Паттерн маркера задаётся в [marker-assets.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/marker-assets.js), pose маркера считывается через [ar-light-source.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/ar-light-source.js), fallback-состояние хранится в [light-state.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/light-state.js), а доменная логика режимов сосредоточена в [light-pose-service.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/light-pose-service.js). Управление страницей и численная диагностика распределены между [task3-controls.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/task3-controls.js), [task3-view.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/task3-view.js) и [light-visualizer.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/light-visualizer.js).
 
 ## Участки кода, которые отвечают за решение
 
 ### 1. Подключение камеры и AR.js
 
-Файл:
-
-- [task3.html](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/task3.html)
-
-Код:
+Как и в других live-задачах, всё начинается с подключения `A-Frame` и `AR.js`. Это находится прямо в [task3.html](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/task3.html).
 
 ```html
 <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
 <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 ```
 
-Комментарий:
-
-- frontend запускает webcam pipeline;
-- `AR.js` используется для распознавания маркера света;
-- страница работает в live-режиме.
+Эта часть важна не сама по себе, а тем, что через неё страница получает живой видеопоток и возможность отслеживать отдельный marker источника света в реальном времени.
 
 ### 2. Подключение маркера света
 
-Файл:
-
-- [marker-assets.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/marker-assets.js)
-
-Код:
+Сам marker описан в [marker-assets.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/marker-assets.js) и задаёт отдельную доменную сущность `light-main`.
 
 ```javascript
 export const LIGHT_MARKER_DEFINITION = {
@@ -123,19 +86,11 @@ export const LIGHT_MARKER_DEFINITION = {
 };
 ```
 
-Комментарий:
-
-- у источника света есть отдельный специальный маркер;
-- используется собственный `.patt` файл;
-- это соответствует условию задачи.
+Важная идея здесь та же, что и в первой задаче: конкретный паттерн и доменное имя света разделены, поэтому marker можно менять, не трогая остальную логику формирования `LightPose`.
 
 ### 3. Чтение позы маркера света
 
-Файл:
-
-- [ar-light-source.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/ar-light-source.js)
-
-Код:
+Реальное считывание позы происходит в [ar-light-source.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/ar-light-source.js).
 
 ```javascript
 return {
@@ -147,19 +102,11 @@ return {
 };
 ```
 
-Комментарий:
-
-- считывается мировая позиция маркера;
-- считывается направление по ориентации маркера;
-- это даёт основу для дальнейшего построения `LightPose`.
+Здесь уже появляется ключевой для третьей задачи момент: система читает не только положение маркера, но и направление его forward-вектора. Это создаёт задел для режима, где поворот marker-а влияет на направление света.
 
 ### 4. Формирование режимов света
 
-Файл:
-
-- [light-pose-service.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/light-pose-service.js)
-
-Код:
+Смысловое преобразование сырых данных marker-а в `LightPose` сосредоточено в [light-pose-service.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/light-pose-service.js).
 
 ```javascript
 export function buildLightPose(lightMarker, mode = 'ambient', intensity = 1) {
@@ -180,19 +127,11 @@ export function buildLightPose(lightMarker, mode = 'ambient', intensity = 1) {
 }
 ```
 
-Комментарий:
-
-- `ambient` реализует рассеянный свет;
-- `directional-fixed` использует заранее выбранное направление;
-- `directional-marker` использует направление, прочитанное из ориентации маркера.
+Это один из центральных фрагментов третьей задачи. В нём видно, что одна и та же marker pose может быть интерпретирована тремя способами: как рассеянный свет, как направленный свет с фиксированной ориентацией или как направленный свет, ориентированный самим marker-ом. Благодаря этому код получается компактным, а логика режимов — прозрачной.
 
 ### 5. Fallback состояния света
 
-Файл:
-
-- [light-state.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/light-state.js)
-
-Код:
+Для устойчивости live pipeline у страницы есть базовое fallback-состояние в [light-state.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/light-state.js).
 
 ```javascript
 export function createLightPose() {
@@ -206,18 +145,11 @@ export function createLightPose() {
 }
 ```
 
-Комментарий:
-
-- если маркер временно не виден, у системы остаётся базовое состояние света;
-- это упрощает дальнейшую интеграцию с задачей тени.
+Это означает, что даже при временной потере маркера страница не распадается на пустое состояние. Вместо этого у неё остаётся понятная опорная конфигурация света, которая позже пригодится и для четвёртой задачи.
 
 ### 6. Панель управления
 
-Файл:
-
-- [task3-controls.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/task3-controls.js)
-
-Код:
+Управление режимами реализовано в [task3-controls.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/task3-controls.js). Здесь пользователь может переключать модель света и менять интенсивность без необходимости менять сам marker pipeline.
 
 ```javascript
 [
@@ -227,19 +159,11 @@ export function createLightPose() {
 ]
 ```
 
-Комментарий:
-
-- на странице можно переключать режимы света;
-- можно менять интенсивность;
-- это позволяет наглядно показать все три варианта реализации из условия.
+Этот фрагмент ценен не только как UI-деталь. Он подчёркивает, что страница задумана как демонстрация сразу нескольких допустимых по условию вариантов реализации источника света.
 
 ### 7. Применение света в сцене
 
-Файл:
-
-- [light-visualizer.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/light-visualizer.js)
-
-Код:
+Перевод `LightPose` в реальное освещение A-Frame происходит в [light-visualizer.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/light-visualizer.js).
 
 ```javascript
 if (lightPose.lightType === 'ambient') {
@@ -254,19 +178,11 @@ directionalLight.setAttribute('light', `type: directional; intensity: ${lightPos
 setLookDirection(directionalLight, lightPose.position, lightPose.direction);
 ```
 
-Комментарий:
-
-- режим `ambient` включает рассеянный свет;
-- режимы `directional-*` включают направленный свет;
-- для направленного света учитывается либо фиксированное направление, либо ориентация маркера.
+Здесь хорошо видно, как абстрактный `LightPose` превращается в конкретное поведение сцены. В одном случае страница включает рассеянное освещение, в другом — направленный источник, а визуализация луча помогает увидеть, откуда именно сейчас “светит” marker.
 
 ### 8. Главный live pipeline
 
-Файл:
-
-- [task3.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/task3.js)
-
-Код:
+Все предыдущие части собираются вместе в [task3.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/task3.js).
 
 ```javascript
 const marker = source.refresh();
@@ -276,26 +192,11 @@ updateLightVisualization(entities, lightPose);
 view.render(lightDiagnostics(lightPose));
 ```
 
-Комментарий:
-
-- каждый кадр система обновляет позу light marker;
-- затем формируется `LightPose`;
-- после этого свет и визуализация синхронизируются со сценой.
+Логика здесь проста и показательна: каждый кадр страница обновляет позу marker-а, строит из неё доменный `LightPose`, применяет этот pose к реальным световым сущностям и одновременно выводит всю численную диагностику на экран. Именно поэтому третья задача читается как цельный live guide по работе со светом, а не как набор разрозненных экспериментов.
 
 ## Проверка покрытия решения
 
-В README учтены все основные части `Task 3`:
-
-- отдельный light marker;
-- живая камера и `AR.js`;
-- чтение позиции маркера;
-- чтение ориентации маркера;
-- рассеянный свет;
-- направленный свет с фиксированным направлением;
-- направленный свет по повороту маркера;
-- визуализация направления;
-- UI-переключение режимов;
-- численные параметры света.
+В этом README последовательно описаны все основные части `Task 3`: отдельный light marker, живая камера через `AR.js`, чтение позиции и ориентации маркера, рассеянный свет, направленный свет с фиксированным направлением, направленный свет по повороту маркера, визуализация направления света, управление режимами через UI и численные параметры света в панели состояния.
 
 ## Как запустить
 
@@ -308,11 +209,3 @@ npm run dev
 Открыть:
 
 - `http://localhost:5174/task3.html`
-
-## Что показывает это решение
-
-- дополнительный маркер задаёт источник света;
-- положение маркера задаёт позицию света;
-- поворот маркера может задавать направление света;
-- один и тот же marker pipeline поддерживает несколько режимов света;
-- результат сразу виден в живой сцене.

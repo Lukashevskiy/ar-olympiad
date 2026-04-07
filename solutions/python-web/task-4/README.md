@@ -2,31 +2,13 @@
 
 ## Назначение
 
-Четвёртая задача отвечает за построение тени объекта на поверхности поля с учётом положения поля, положения источника света и геометрии объекта.
+Четвёртая задача отвечает за построение тени объекта на поверхности поля с учётом геометрии поля, положения и типа источника света, а также формы и положения самого объекта. В этой реализации тень строится не как одно плоское пятно, а как более выразительная многослойная модель, где отдельно учитываются основное ядро тени, более мягкая penumbra, локальная окклюзия под объектом и слабый рефлекс на поверхности.
 
-В этом решении реализован live pipeline:
-
-1. по четырём маркерам восстанавливается поле;
-2. по отдельному маркеру восстанавливается источник света;
-3. объект внутри поля обнаруживается backend CV-алгоритмом;
-4. backend строит `ShadowProjection`;
-5. frontend визуализирует тень в AR-сцене;
-6. тень обновляется при движении источника света.
-
-Дополнительно учтены простые элементы реалистичности:
-
-- зависимость размера тени от расстояния до источника света;
-- разделение на umbra и penumbra;
-- локальная окклюзия под объектом;
-- слабый рефлекс на поверхности.
+С инженерной точки зрения эта задача собирает в единый pipeline почти всё, что было сделано раньше. Сначала по четырём маркерам восстанавливается поле. Затем по отдельному marker-у восстанавливается источник света. После этого внутри поля определяется объект, backend строит `ShadowProjection`, а frontend отображает этот результат прямо в живой AR-сцене и периодически перепроецирует тень при перемещении источника света.
 
 ## Входной HTML
 
-Основная страница:
-
-- [task4.html](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/task4.html)
-
-Полный HTML:
+Основная страница решения находится в [task4.html](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/task4.html). Её структура показывает важную мысль четвёртой задачи: тень здесь не является побочным эффектом, а выступает отдельным визуальным объектом, для которого в сцене заранее подготовлено несколько самостоятельных слоёв.
 
 ```html
 <!doctype html>
@@ -66,50 +48,19 @@
 </html>
 ```
 
-Что здесь важно:
-
-- используется живая камера;
-- в сцене есть объект и несколько слоёв тени;
-- light marker и field markers участвуют в одном pipeline;
-- `task4.html` является отдельным боевым entrypoint.
+Уже на уровне HTML видно, что здесь есть не только объект и итоговая тень, но и отдельные сущности для нескольких визуальных компонентов shadow model. Это и создаёт ощущение более реалистичного результата.
 
 ## Основные файлы решения
 
-### Frontend
+Главный live pipeline собран в [task4.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/task4.js). Визуальная часть вынесена в [shadow-visualizer.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task4-shadow/shadow-visualizer.js), управление страницей находится в [task4-controls.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task4-shadow/task4-controls.js), а диагностическое отображение состояния — в [task4-view.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task4-shadow/task4-view.js). Контракт shadow request описан в [request-builder.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task4-shadow/request-builder.js).
 
-- [task4.html](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/task4.html)
-- [task4.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/task4.js)
-- [shadow-visualizer.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task4-shadow/shadow-visualizer.js)
-- [task4-controls.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task4-shadow/task4-controls.js)
-- [task4-view.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task4-shadow/task4-view.js)
-- [request-builder.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task4-shadow/request-builder.js)
-
-Используемые модули из прошлых задач:
-
-- [field-state.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/field-state.js)
-- [ar-marker-source.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/ar-marker-source.js)
-- [screen-projection.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/screen-projection.js)
-- [camera-frame.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task2-object-detection/camera-frame.js)
-- [request-builder.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task2-object-detection/request-builder.js)
-- [ar-light-source.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/ar-light-source.js)
-- [light-pose-service.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/light-pose-service.js)
-
-### Backend
-
-- [shadow.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/api/shadow.py)
-- [shadow_math.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/services/shadow_math.py)
-- [models.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/domain/models.py)
-- [ball_detector.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/cv/ball_detector.py)
+При этом сама четвёртая задача в этой реализации не живёт в изоляции: она опирается на [field-state.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/field-state.js), [ar-marker-source.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/ar-marker-source.js), [screen-projection.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task1-field/screen-projection.js), [camera-frame.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task2-object-detection/camera-frame.js), [request-builder.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task2-object-detection/request-builder.js), [ar-light-source.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/ar-light-source.js) и [light-pose-service.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task3-light/light-pose-service.js). На backend за задачу отвечают [shadow.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/api/shadow.py), [shadow_math.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/services/shadow_math.py), [models.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/domain/models.py) и [ball_detector.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/cv/ball_detector.py).
 
 ## Участки кода, которые отвечают за решение
 
 ### 1. Главный live pipeline
 
-Файл:
-
-- [task4.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/task4.js)
-
-Код:
+В [task4.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/task4.js) поле, свет и объект связываются в единую цепочку. Сначала frontend детектирует объект внутри поля, а затем по этому объекту и текущему источнику света запрашивает shadow projection.
 
 ```javascript
 const detection = await detectObject(buildDetectionRequest(state.fieldPose, {
@@ -123,19 +74,11 @@ const shadow = await projectShadow(
 );
 ```
 
-Комментарий:
-
-- frontend связывает поле, объект и свет в один pipeline;
-- после захвата объекта запускается shadow endpoint;
-- дальше тень обновляется уже в live-режиме.
+Этот фрагмент хорошо показывает смысл задачи: тень не рисуется “по месту”, а вычисляется как результат согласованного взаимодействия между `Task 1`, `Task 2` и `Task 3`.
 
 ### 2. Контракт shadow request
 
-Файл:
-
-- [request-builder.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task4-shadow/request-builder.js)
-
-Код:
+Чтобы четвёртая задача не зависела от конкретного detector-а или конкретной страницы, frontend собирает запрос через [request-builder.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task4-shadow/request-builder.js).
 
 ```javascript
 export function buildShadowRequest(fieldPose, lightPose, objectPose) {
@@ -147,19 +90,11 @@ export function buildShadowRequest(fieldPose, lightPose, objectPose) {
 }
 ```
 
-Комментарий:
+Смысл этого контракта в том, что backend получает уже готовые доменные сущности. Для него не важно, как именно был найден объект или откуда пришёл свет — важны только поле, источник и объект как согласованные части одной сцены.
 
-- backend получает три ключевые сущности;
-- это делает `Task 4` независимым от конкретного detector-а;
-- тень считается по унифицированным доменным данным.
+### 3. Усиленный backend shadow algorithm
 
-### 3. Улучшенный backend shadow algorithm
-
-Файл:
-
-- [shadow_math.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/services/shadow_math.py)
-
-Код:
+Самая важная логика живёт в [shadow_math.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/services/shadow_math.py). Именно здесь простая проекция тени была расширена до модели, которая хотя бы в базовом виде учитывает реалистичность.
 
 ```python
 distance_factor = _clamp(light_distance / 1.8, 0.75, 2.2)
@@ -170,20 +105,11 @@ occlusion_opacity = _clamp(0.55 + angle_factor * 0.18 - vertical_gap * 0.16, 0.3
 reflection_opacity = _clamp(0.05 + (1.0 - angle_factor) * 0.12 + (light_pose["lightType"] == "ambient") * 0.08, 0.04, 0.22)
 ```
 
-Комментарий:
-
-- форма и размер тени зависят от расстояния до источника света;
-- penumbra расширяется при удалении источника;
-- добавлены отдельные параметры для окклюзии и рефлекса;
-- это делает тень визуально богаче обычного чёрного пятна.
+Этот кусок кода важен тем, что здесь тень перестаёт быть просто растянутым чёрным прямоугольником. Размер ядра, мягкость penumbra, насыщенность окклюзии и сила рефлекса зависят от расстояния до света, угла луча и конфигурации сцены.
 
 ### 4. Контур тени
 
-Файл:
-
-- [shadow_math.py](/home/dmitriyl/olypiad_ar_task/solutions/python-web/backend/app/services/shadow_math.py)
-
-Код:
+Для более содержательной модели backend дополнительно возвращает контур тени. Это по-прежнему упрощённая геометрия, но она уже годится как база для дальнейшего усложнения.
 
 ```python
 def _contour_ellipse(scale_x, scale_z, segments=16):
@@ -196,18 +122,11 @@ def _contour_ellipse(scale_x, scale_z, segments=16):
         })
 ```
 
-Комментарий:
+Даже в таком виде contour полезен: он показывает, что тень рассматривается как отдельная геометрическая сущность, а не только как набор opacity и scale.
 
-- даже в упрощённом варианте backend возвращает контур тени;
-- это даёт задел для дальнейшего перехода от plane-shadow к более сложной геометрии.
+### 5. Визуализация umbra, penumbra и дополнительных слоёв
 
-### 5. Визуализация umbra / penumbra / reflection
-
-Файл:
-
-- [shadow-visualizer.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task4-shadow/shadow-visualizer.js)
-
-Код:
+На frontend итоговый shadow result раскладывается на несколько визуальных слоёв в [shadow-visualizer.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task4-shadow/shadow-visualizer.js).
 
 ```javascript
 setFieldAlignedPlane(umbraPlane, shadowProjection.position, fieldPose.axes, shadowProjection.scale.x, shadowProjection.scale.z);
@@ -220,20 +139,11 @@ setFieldAlignedPlane(
 );
 ```
 
-Комментарий:
-
-- тень рисуется не одним слоем, а несколькими;
-- основной слой отвечает за umbra;
-- расширенный слой отвечает за penumbra;
-- дополнительные слои дают ощущение окклюзии и рефлекса.
+Здесь особенно важно, что тень не сводится к одному plane. Отдельный слой отвечает за основное ядро, отдельный — за penumbra, ещё один — за плотную локальную окклюзию прямо под объектом, и отдельный слой имитирует слабый рефлекс от поверхности. Именно эта многослойность делает итоговую картинку визуально убедительнее.
 
 ### 6. Выравнивание тени по плоскости поля
 
-Файл:
-
-- [shadow-visualizer.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task4-shadow/shadow-visualizer.js)
-
-Код:
+Тень должна лежать не просто на мировой плоскости, а на восстановленной поверхности поля. Для этого в [shadow-visualizer.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/tasks/task4-shadow/shadow-visualizer.js) строится quaternion по локальным осям поля.
 
 ```javascript
 const basis = new THREE.Matrix4().makeBasis(right, forward, normal);
@@ -241,18 +151,11 @@ const quaternion = new THREE.Quaternion().setFromRotationMatrix(basis);
 entity.object3D.quaternion.copy(quaternion);
 ```
 
-Комментарий:
-
-- тень ориентируется не в мировом горизонте, а по локальным осям поля;
-- это позволяет учитывать наклон поверхности.
+Это важный момент четвёртой задачи: если поле наклонено, тень должна лечь именно на этот наклон, а не оставаться в условном мировом горизонте.
 
 ### 7. Live-обновление при движении света
 
-Файл:
-
-- [task4.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/task4.js)
-
-Код:
+В [task4.js](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/src/app/task4.js) после захвата объекта тень начинает автоматически перепроецироваться при движении источника света.
 
 ```javascript
 if (state.objectCaptured && state.fieldPose.isValid && now - lastShadowTick > 180) {
@@ -261,29 +164,11 @@ if (state.objectCaptured && state.fieldPose.isValid && now - lastShadowTick > 18
 }
 ```
 
-Комментарий:
-
-- после захвата объекта тень автоматически обновляется;
-- это даёт отклик на перемещение light marker и изменение сцены;
-- реализован не только статичный режим, но и live response.
+Этот фрагмент показывает, что задача не ограничена обработкой статичного кадра. После того как объект определён, light marker можно двигать, и система будет давать на это достаточно быстрый визуальный отклик.
 
 ## Проверка покрытия решения
 
-В README учтены основные части `Task 4`:
-
-- отдельная страница задачи;
-- live камера;
-- поле по маркерам;
-- light marker;
-- объект внутри поля;
-- shadow endpoint;
-- реакция на перемещение света;
-- зависимость размеров тени от расстояния;
-- umbra;
-- penumbra;
-- окклюзия;
-- рефлекс;
-- ориентация тени по плоскости поля.
+Этот README последовательно описывает все ключевые части `Task 4`: отдельный HTML entrypoint, live camera pipeline, поле по маркерам, источник света по marker-у, объект внутри поля, backend shadow endpoint, реакцию тени на движение света, зависимость размеров тени от расстояния до источника, разделение на umbra и penumbra, локальную окклюзию, слабый рефлекс и ориентацию тени по плоскости поля.
 
 ## Как запустить
 
@@ -308,12 +193,3 @@ npm run dev
 Открыть:
 
 - `http://localhost:5174/task4.html`
-
-## Что показывает это решение
-
-- поле восстанавливается по маркерам;
-- источник света задаётся отдельным маркером;
-- объект определяется внутри поля;
-- тень строится на поверхности поля;
-- тень обновляется при движении света;
-- в модели уже заложены простые элементы реалистичности.
