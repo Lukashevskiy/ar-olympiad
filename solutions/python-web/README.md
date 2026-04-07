@@ -1,6 +1,6 @@
 # Python Web Solution
 
-Split MVP with FastAPI backend and a small JS frontend.
+FastAPI backend plus JS frontend. The main standalone page for the second task is [`task2.html`](/home/dmitriyl/olypiad_ar_task/solutions/python-web/frontend/task2.html), where the camera, field markers, backend detection, and shadow projection work together in one flow.
 
 ## Backend
 
@@ -15,10 +15,10 @@ Split MVP with FastAPI backend and a small JS frontend.
 
 ## Frontend
 
-- `/`: scene + API integration
-- `/debug.html`: debug payload and overlay mode
+- `/`: generic scene + API integration
+- `/task2.html`: live Task 2 page with webcam, field markers, light marker, backend ball detection, and shadow projection
 
-`/debug.html` uses a synthetic field image with a ball and calls the backend in `ball-cv` mode.
+`/task2.html` uses the webcam stream from AR.js, computes `FieldPose` from four markers, captures a live frame, and calls the backend in `ball-cv` mode.
 
 Task 2 explanation:
 
