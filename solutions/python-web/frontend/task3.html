@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AR Olympiad | Task 3 Light Source</title>
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <style>
+      body {
+        margin: 0;
+        font-family: monospace;
+        background: #10151d;
+        color: #e5edf5;
+      }
+      #app {
+        min-height: 100vh;
+      }
+      #controls-panel {
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        width: 320px;
+        max-height: calc(100vh - 24px);
+        overflow: auto;
+        padding: 12px;
+        background: rgba(10, 14, 20, 0.92);
+        border: 1px solid rgba(110, 130, 150, 0.35);
+        border-radius: 10px;
+        color: #e6edf3;
+        font-size: 12px;
+        line-height: 1.45;
+        z-index: 30;
+      }
+      #task3-layout {
+        display: grid;
+        grid-template-columns: minmax(560px, 1fr) 420px;
+        min-height: 100vh;
+        padding-left: 356px;
+      }
+      #task3-stage {
+        padding: 24px;
+        border-right: 1px solid rgba(120, 140, 160, 0.2);
+        background: linear-gradient(180deg, #111927 0%, #0b1016 100%);
+      }
+      #task3-json {
+        margin: 0;
+        padding: 24px;
+        white-space: pre-wrap;
+        background: #0b1016;
+      }
+      #scene-shell {
+        margin-top: 16px;
+        width: min(100%, 920px);
+        border: 1px solid rgba(120, 140, 160, 0.25);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      #task3-scene {
+        width: 100%;
+        height: 560px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <section id="controls-panel">
+        <div id="controls-title" style="font-weight: 700;">Task 3 Controls</div>
+        <div id="controls-hint" style="margin: 8px 0 10px; opacity: 0.9;">
+          Live Task 3: use a separate marker to control ambient or directional light.
+        </div>
+        <div id="controls-status" style="margin-bottom: 10px; color: #a7f3d0;"></div>
+        <div id="controls-body"></div>
+      </section>
+
+      <div id="task3-layout">
+        <section id="task3-stage">
+          <h2>Task 3 Light Source</h2>
+          <div id="scene-summary"></div>
+          <div id="scene-shell">
+            <a-scene
+              id="task3-scene"
+              embedded
+              vr-mode-ui="enabled: false"
+              renderer="colorManagement: true"
+              arjs="sourceType: webcam; debugUIEnabled: false;"
+            >
+              <a-camera active="true" position="0 0 0"></a-camera>
+
+              <a-entity id="task3-ambient-light" light="type: ambient; intensity: 0.85"></a-entity>
+              <a-entity id="task3-directional-light" light="type: directional; intensity: 0"></a-entity>
+
+              <a-sphere id="task3-light-gizmo" radius="0.04" color="#ffd166" visible="false"></a-sphere>
+              <a-entity id="task3-light-ray" visible="false"></a-entity>
+
+              <a-entity id="task3-preview-rig" position="0 -0.15 -1.8">
+                <a-plane width="1.1" height="1.1" rotation="-90 0 0" color="#3f3f46"></a-plane>
+                <a-box position="-0.24 0.12 -0.08" width="0.18" height="0.24" depth="0.18" color="#7dd3fc"></a-box>
+                <a-sphere position="0.12 0.1 0.06" radius="0.1" color="#fb7185"></a-sphere>
+                <a-cylinder position="0.28 0.15 -0.12" radius="0.08" height="0.3" color="#86efac"></a-cylinder>
+                <a-text
+                  id="task3-preview-label"
+                  value="Waiting for light marker"
+                  position="-0.45 0.52 0"
+                  color="#ffffff"
+                  width="1.8"
+                ></a-text>
+              </a-entity>
+            </a-scene>
+          </div>
+        </section>
+
+        <pre id="task3-json"></pre>
+      </div>
+    </div>
+    <script type="module" src="/src/app/task3.js"></script>
+  </body>
+</html>

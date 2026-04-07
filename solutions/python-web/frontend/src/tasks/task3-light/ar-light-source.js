@@ -4,6 +4,16 @@ function createLightMarkerEntity(definition) {
   marker.setAttribute('url', definition.patternUrl);
   marker.setAttribute('size', definition.size || 0.16);
   marker.dataset.markerId = definition.id;
+
+  const proxy = document.createElement('a-cone');
+  proxy.setAttribute('radius-bottom', '0.03');
+  proxy.setAttribute('radius-top', '0.006');
+  proxy.setAttribute('height', '0.12');
+  proxy.setAttribute('position', '0 0.06 0');
+  proxy.setAttribute('rotation', '0 0 90');
+  proxy.setAttribute('color', '#ffd166');
+  marker.appendChild(proxy);
+
   return marker;
 }
 
