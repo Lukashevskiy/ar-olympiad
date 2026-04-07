@@ -1,48 +1,20 @@
-# AR Olympiad Monorepo
+# Task 2 Branch
 
-Reference monorepo for a team AR olympiad task where participants reconstruct a field from four markers, estimate a light source from a separate marker, locate an object inside the field, and project its shadow onto the field plane.
+Эта ветка содержит автономное решение второй задачи: распознавание объекта внутри поля и подготовка `ObjectPose` для построения тени.
 
-The repository contains two parallel solution tracks:
+Ветка сфокусирована на `python-web` варианте решения:
+- backend на FastAPI;
+- baseline CV-детектор мяча;
+- ограничение детекции областью поля;
+- debug workbench для загрузки кадра, задания границы поля и запуска детекции.
 
-- `solutions/web-js`: browser-first WebAR implementation on A-Frame, AR.js, and pure JavaScript math.
-- `solutions/python-web`: split architecture with a Python backend for detection / projection services and a JS frontend for scene rendering and debug tooling.
+## Структура
 
-Debug mode is a first-class part of the project. It is designed for geometry validation, marker layout debugging, shadow projection analysis, and API inspection without depending on a webcam pipeline.
+- `solutions/python-web/backend/`: API и CV-логика распознавания.
+- `solutions/python-web/frontend/`: debug UI и клиент backend API.
+- `solutions/python-web/task-2/README.md`: пояснение к реализации с выдержками из кода.
 
-## Repository layout
-
-- `docs/`: olympiad docs, architecture notes, and development workflow.
-- `specs/`: API, marker, math, and debug mode specifications.
-- `shared/`: shared domain examples and JSON contracts.
-- `assets/`: static assets and marker files.
-- `datasets/`: placeholder for training / evaluation data.
-- `solutions/web-js/`: full front-end variant with AR mode and debug mode.
-- `solutions/python-web/`: backend + frontend variant with mock detection and projection APIs.
-- `tools/`: helper scripts for local development and evaluation.
-
-## Task mapping
-
-- `task1-field`: four-marker field reconstruction, plane fitting, validation, surface transform.
-- `task2-object-detection`: object detection / stub object provider.
-- `task3-light`: light marker tracking and light pose estimation.
-- `task4-shadow`: planar shadow projection and visualization.
-
-Each solution keeps the same task split so teams can develop and compare implementations incrementally.
-
-## Run `web-js`
-
-```bash
-cd solutions/web-js
-npm install
-npm run dev
-```
-
-Open:
-
-- `http://localhost:5173/` for AR mode.
-- `http://localhost:5173/debug.html` for developer mode.
-
-## Run `python-web`
+## Запуск
 
 Backend:
 
@@ -62,14 +34,15 @@ npm install
 npm run dev
 ```
 
-Open:
+Открыть:
 
-- `http://localhost:5174/` for API-backed scene mode.
-- `http://localhost:5174/debug.html` for frontend debug mode.
+- `http://localhost:5174/debug.html`
 
-## MVP scope in this repository
+## Ключевые файлы решения
 
-- Shared domain contracts for `FieldPose`, `LightPose`, `ObjectPose`, `ShadowProjection`, and `DebugState`.
-- Working JS MVP with field, light, object, and shadow pipeline in AR mode and camera-free debug mode.
-- Working Python MVP with FastAPI mock endpoints, frontend API client, and integrated shadow pipeline.
-- Modular debug gizmos, numeric overlays, and failure-state reporting.
+- `solutions/python-web/backend/app/api/detection.py`
+- `solutions/python-web/backend/app/services/detection_service.py`
+- `solutions/python-web/backend/app/cv/ball_detector.py`
+- `solutions/python-web/frontend/src/app/main-debug.js`
+- `solutions/python-web/frontend/src/debug/detection-debug-controls.js`
+- `solutions/python-web/task-2/README.md`

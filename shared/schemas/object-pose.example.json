@@ -1,9 +1,0 @@
-{
-  "className": "debug-cube",
-  "position": { "x": 0.1, "y": 0.18, "z": 0.05 },
-  "rotation": { "x": 0, "y": 25, "z": 0 },
-  "size": { "x": 0.18, "y": 0.36, "z": 0.18 },
-  "contour": [],
-  "mask": null,
-  "confidence": 0.84
-}

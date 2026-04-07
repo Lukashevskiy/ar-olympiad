@@ -1,15 +1,9 @@
-# Python Web Frontend
+# Frontend Debug Workbench
 
-Small JS frontend for the FastAPI-backed variant.
+Frontend используется как инженерная среда проверки `Task 2`.
 
-## Pages
-
-- `/`: scene mode with backend integration
-- `/debug.html`: debug mode with mock payload sender and API response inspection
-
-## Run
-
-```bash
-npm install
-npm run dev
-```
+Что делает страница `debug.html`:
+- загружает synthetic или реальный кадр;
+- позволяет задать 4 угла поля в координатах изображения;
+- отправляет кадр и границу поля в backend;
+- показывает результат детекции мяча и shadow projection.

@@ -1,45 +1,24 @@
-# Python Web Solution
+# Python Web Task 2
 
-Split MVP with FastAPI backend and a small JS frontend.
+Отдельное решение второй задачи на FastAPI и небольшом JS frontend.
 
-## Backend
+## Что входит
 
-- `GET /health`
-- `POST /api/detect/object`
-- `POST /api/project/shadow`
+- backend endpoint `POST /api/detect/object`
+- baseline CV-детектор мяча
+- ограничение поиска областью поля
+- debug страница для загрузки кадра и ручного задания границы поля
+- shadow projection для проверки результата детекции в полном pipeline
 
-`/api/detect/object` now supports:
+## Страницы
 
-- `detectorMode: "mock"` for the old stub response
-- `detectorMode: "ball-cv"` for a baseline CV detector that finds a bright orange/red ball in a field image and returns `ObjectPose`
+- `/debug.html` — основной debug workbench для `Task 2`
 
-## Frontend
+## Основные каталоги
 
-- `/`: scene + API integration
-- `/debug.html`: debug payload and overlay mode
-
-`/debug.html` uses a synthetic field image with a ball and calls the backend in `ball-cv` mode.
-
-Task 2 explanation:
-
-- [Task 2 README](/home/dmitriyl/olypiad_ar_task/solutions/python-web/task-2/README.md)
-
-## Run
-
-Backend:
-
-```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
-```
-
-Frontend:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
+- `backend/app/api/`: API endpoints
+- `backend/app/services/`: orchestration и shadow projection
+- `backend/app/cv/`: CV-логика поиска мяча
+- `frontend/src/app/`: запуск debug UI
+- `frontend/src/debug/`: элементы debug workbench
+- `task-2/README.md`: подробное пояснение по задаче
